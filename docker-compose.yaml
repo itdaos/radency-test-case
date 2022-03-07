@@ -1,0 +1,40 @@
+networks:
+  server-network:
+    driver: bridge
+
+services:
+  api:
+    build: ocr-service
+    container_name: "ocr-api"
+    command: npm run start
+    ports:
+      - "3000:3000"
+    volumes:
+      - "./ocr-service:/src/app"
+      - "/src/app/node_modules"
+    networks:
+      - server-network
+    depends_on:
+      - rabbit
+  ocr:
+    build: ocr-processor-service
+    container_name: "ocr-processor"
+    command: npm run start
+    ports:
+      - "3001:3001"
+    volumes:
+      - "./ocr-processor-service:/src/process"
+      - "/src/process/node_modules"
+    networks:
+      - server-network
+    depends_on:
+      - rabbit
+  rabbit:
+    image: rabbitmq:3-management-alpine
+    container_name: "rabbitmq"
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+    networks:
+      - server-network
